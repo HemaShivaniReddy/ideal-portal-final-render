@@ -1,0 +1,5 @@
+import express from 'express'; import ForumTopic from '../models/ForumTopic.js'; import { auth } from '../middleware/auth.js'; const router = express.Router();
+router.post('/topics', auth, async (req,res)=>{ const {topic} = req.body; if(!topic) return res.status(400).json({message:'Topic required'}); const t = await ForumTopic.create({topic,createdBy:req.user.id,comments:[]}); res.status(201).json(t); });
+router.get('/topics', auth, async (req,res)=>{ const list = await ForumTopic.find().populate('createdBy','name').sort({createdAt:-1}); res.json(list); });
+router.post('/topics/:id/comments', auth, async (req,res)=>{ const {text} = req.body; if(!text) return res.status(400).json({message:'Text required'}); const topic = await ForumTopic.findById(req.params.id); if(!topic) return res.status(404).json({message:'Topic not found'}); topic.comments.push({text,user:req.user.id}); await topic.save(); await topic.populate('comments.user','name'); res.status(201).json(topic); });
+export default router;
