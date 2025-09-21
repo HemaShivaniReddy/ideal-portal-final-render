@@ -10,10 +10,19 @@ dotenv.config();
 const app = express();
 
 // ✅ Allow requests from your Vercel frontend
+const allowedOrigins = process.env.FRONTEND_ORIGIN.split(",");
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || "https://ideal-portal-final-render.vercel.app",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true
 }));
+
 
 app.use(express.json());
 
