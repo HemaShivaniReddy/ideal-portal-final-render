@@ -9,31 +9,30 @@ import forumRoutes from './routes/forum.js';
 dotenv.config();
 const app = express();
 
-// ✅ Allow requests from your Vercel frontend
-const allowedOrigins = process.env.FRONTEND_ORIGIN.split(",");
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
-
+// ✅ CORS: allow only your Vercel frontend
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
+// ✅ Connect DB
 connectDB();
 
-app.get('/', (req, res) => res.json({ status: 'Ideal Portal Backend OK' }));
+// Health check
+app.get('/', (req, res) => {
+  res.json({ status: 'Ideal Portal Backend OK' });
+});
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/ideas', ideaRoutes);
 app.use('/api/forum', forumRoutes);
 
+// Error handler
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({ message: err.message });
 });
